@@ -220,10 +220,9 @@ let larr = Array(32)
 function outppoint(tr,lng,prang,can,coord){
   let [x,y] = proj(lng,prang,can,coord)
   let p = newtag("circle")
-  setpar(p,"cx",x)
-  setpar(p,"cy",y)
-  setpar(p,"r",radius)
-  p.id="c".concat(coord.join(""))
+  p.cx.baseVal.value=x
+  p.cy.baseVal.value=y
+  p.r.baseVal.value=radius
   let [t,u,v,w] = coord
   parr[8*t+4*u+2*v+w]=p
   return(outp(tr,p))
@@ -240,11 +239,10 @@ function outpline(tr,le,an,ca,ax,fx){
   let [x1,y1] = proj(le,an,ca,c1)
   let [x2,y2] = proj(le,an,ca,c2)
   let ln = newtag("line")
-  setpar(ln,"x1",x1)
-  setpar(ln,"y1",y1)
-  setpar(ln,"x2",x2)
-  setpar(ln,"y2",y2)
-  ln.id="l".concat(ax,fx.join(""))
+  ln.x1.baseVal.value=x1
+  ln.y1.baseVal.value=y1
+  ln.x2.baseVal.value=x2
+  ln.y2.baseVal.value=y2
   let [a,b,c] = fx
   larr[8*ax+4*a+2*b+c] = ln
   return(outp(tr,ln))
@@ -296,15 +294,19 @@ function updatepoint(le,an,ca,crd){
   let [x,y] = proj(le,an,ca,crd)
   let [t,u,v,w] = crd
   let p = parr[8*t+4*u+2*v+w]
-  setpar(p,"cx",x)
-  setpar(p,"cy",y)
+  p.cx.baseVal.value=x
+  p.cy.baseVal.value=y
   for(let e = 0; e<4; e++){
     let [a,b,c] = crd.slice(0,e)
                   .concat(crd.slice(e+1))
     let lin = larr[8*e+4*a+2*b+c]
-    let side = crd[e]?"2":"1"
-    setpar(lin,"x".concat(side),x)
-    setpar(lin,"y".concat(side),y)
+    if(crd[e]){
+      lin.x2.baseVal.value=x
+      lin.y2.baseVal.value=y
+    }else{
+      lin.x1.baseVal.value=x
+      lin.y1.baseVal.value=y
+    }
   }
 }
 
