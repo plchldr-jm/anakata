@@ -19,7 +19,7 @@ tr{
 }
 
 td{
-  margin: 5% auto;
+  margin: 1% auto;
   justify-self: center;
   /*
   width: 50%;
@@ -439,36 +439,43 @@ function(evnt){
 let tbut = gebi("toggle")
 let rbut = gebi("reset")
 
+function pausean(){
+  if(!idan)return;
+  cancelAnimationFrame(idan)
+  idan=null
+  tbut.firstChild
+    .textContent="Resume Animation"
+}
 
+function resumean(){
+  if(idan)return;
+  lstfr = performance.now()
+  idan =
+    requestAnimationFrame(updateframe)
+  tbut.firstChild
+    .textContent="Stop Animation"
+}
 
 tbut.addEventListener("click",function(evnt){
-  if(idan){
-    cancelAnimationFrame(idan)
-    tbut.firstChild
-      .textContent="Resume Animation"
-    idan=null
-  }else{
-    lstfr = performance.now()
-    idan = 
-      requestAnimationFrame(updateframe)
-    tbut.firstChild
-      .textContent="Stop Animation"
-  }
+  idan
+  ?pausean()
+  :resumean()
 })
 
 rbut.addEventListener("click",function(evnt){
-  
+  pausean()
+
   anpms=pms3*(anlim-anmrg)/100
   pslide.value=
   pfield.value=
     (pms3*1000).toFixed(1)
 
-  cmpangpms=pms2*180/100
+  rotangpms=pms2*180/100
   rslide.value=
   rfield.value=
     (pms2*1000).toFixed(1)
 
-  rotangpms=pms1*180/100
+  cmpangpms=pms1*180/100
   cslide.value=
   cfield.value=
     (pms1*1000).toFixed(1)
@@ -480,13 +487,16 @@ rbut.addEventListener("click",function(evnt){
   cmpang=0
   rotang=0
   
-  idan = idan?idan
-    :requestAnimationFrame(updateframe)
+  resumean()
 })
 
-idan = 
-  requestAnimationFrame(updateframe)
+resumean()
+
 
 </script>
+
+<script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
+
 </body>
 </html>
