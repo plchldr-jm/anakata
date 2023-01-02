@@ -1,10 +1,10 @@
 import Data.List (isPrefixOf)
 
-extract :: String -> String -> String
+embed :: String -> String -> String
 
-extract _ "" = ""
+embed _ "" = ""
 
-extract payload template 
+embed payload template 
   | "<script>\n" 
     `isPrefixOf` template
   = let 
@@ -20,6 +20,6 @@ extract payload template
   | otherwise
   = case template of
     (c:cs) -> 
-      (c:extract payload cs)
+      (c:embed payload cs)
 
---extractPL :: String -> String -> String
+--embedPL :: String -> String -> String
