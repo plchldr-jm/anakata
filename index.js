@@ -1,0 +1,341 @@
+
+const phi = .5 + .5 * Math.sqrt(5)
+
+function irfac(a,b,c,d){
+  return (a*phi+b)/(c*phi+d)
+}
+
+const MiH = 1
+const incngr = .5 + .5 * Math.sqrt(5)
+const pms1 = 8/1000*MiH
+const pms2 = irfac(3,-1,1,0)*pms1
+const pms3 = phi*pms2
+const svgns = "http://www.w3.org/2000/svg"
+let stcang = 22.5
+let stclng = 100
+let radius = .06 * stclng
+
+let cmpang = 0
+let cmpangpms = pms1*180/100
+let rotang = 0
+let rotangpms = pms2*180/100
+
+const anmrg = 15
+const anlim = 30
+let anpms = pms3*(anlim-anmrg)/100
+let andir = 1
+const flmin = 2*anmrg
+const flmax = 2*anlim
+
+function smooth(x){ 
+  return x>.5
+   ? -.25*Math.cos(2*Math.PI*(x-.5)) + .75
+   :  .25*Math.cos(2*Math.PI*(x-.5)) + .25
+}
+
+
+function proj(len,prang,can,coord){
+  const radians = prang*(Math.PI/180)
+  const long = len*Math.cos(radians)
+  const shrt = len*Math.sin(radians)
+  const cm = Math.cos(can*Math.PI/180)
+  const [t,u,v,w] = coord
+  return([cm*
+         (-long*t -shrt*u +shrt*v +long*w),
+           shrt*t +long*u +long*v +shrt*w])
+}
+
+function gebi(idd){
+  return(document.getElementById(idd))
+}
+
+function newtag(tp){
+  return(document.createElementNS(svgns,tp))
+}
+
+function setpar(t,k,v){
+  return(t[k].baseVal.value=v)
+}
+
+function outp(sp,sb){
+  return(sp.appendChild(sb))
+}
+
+let parr = Array(16)
+let larr = Array(32)
+
+function outppoint(tr,lng,prang,can,coord){
+  let [x,y] = proj(lng,prang,can,coord)
+  let p = newtag("circle")
+  p.cx.baseVal.value=x
+  p.cy.baseVal.value=y
+  p.r.baseVal.value=radius
+  let [t,u,v,w] = coord
+  parr[8*t+4*u+2*v+w]=p
+  return(outp(tr,p))
+}
+
+let ltray = gebi("linetray")
+let ptray = gebi("circletray")
+
+function outpline(tr,le,an,ca,ax,fx){
+  let lfx = fx.slice(0,ax)
+  let rfx = fx.slice(ax)
+  let c1 = lfx.concat([0],rfx)
+  let c2 = lfx.concat([1],rfx)
+  let [x1,y1] = proj(le,an,ca,c1)
+  let [x2,y2] = proj(le,an,ca,c2)
+  let ln = newtag("line")
+  ln.x1.baseVal.value=x1
+  ln.y1.baseVal.value=y1
+  ln.x2.baseVal.value=x2
+  ln.y2.baseVal.value=y2
+  let [a,b,c] = fx
+  larr[8*ax+4*a+2*b+c] = ln
+  return(outp(tr,ln))
+}
+
+for (let t = 0; t<2; t++)
+for (let u = 0; u<2; u++)
+for (let v = 0; v<2; v++)
+for (let w = 0; w<2; w++)
+  outppoint(ptray,stclng,
+            stcang,cmpang,[t,u,v,w])
+
+for(let e = 0; e<4; e++)
+for(let a = 0; a<2; a++)
+for(let b = 0; b<2; b++)
+for(let c = 0; c<2; c++)
+  outpline(ltray,stclng,
+  stcang,cmpang,e,[a,b,c])
+
+function trupdate(objct,leng,ang){
+  objct.setTranslate(0,
+  -leng*
+  (Math.cos(ang*Math.PI/180)
+  +Math.sin(ang*Math.PI/180)))
+}
+
+let svgroot = gebi("svg")
+let trnslttr = svgroot
+  .createSVGTransform()
+
+trupdate(trnslttr,stclng,stcang)
+
+let rottr = svgroot
+  .createSVGTransform()
+
+rottr.setRotate(0,0,0)
+
+let trfl = gebi("whole")
+  .transform.baseVal
+  
+trfl.initialize(rottr)
+trfl.appendItem(trnslttr)
+
+
+
+let lstfr = performance.now()
+
+function updatepoint(le,an,ca,crd){
+  let [x,y] = proj(le,an,ca,crd)
+  let [t,u,v,w] = crd
+  let p = parr[8*t+4*u+2*v+w]
+  p.cx.baseVal.value=x
+  p.cy.baseVal.value=y
+  for(let e = 0; e<4; e++){
+    let [a,b,c] = crd.slice(0,e)
+                  .concat(crd.slice(e+1))
+    let lin = larr[8*e+4*a+2*b+c]
+    if(crd[e]){
+      lin.x2.baseVal.value=x
+      lin.y2.baseVal.value=y
+    }else{
+      lin.x1.baseVal.value=x
+      lin.y1.baseVal.value=y
+    }
+  }
+}
+
+function updateallp(le,an,ca){
+  for (let t = 0; t<2; t++)
+  for (let u = 0; u<2; u++)
+  for (let v = 0; v<2; v++)
+  for (let w = 0; w<2; w++)
+  updatepoint(le,an,ca,[t,u,v,w])
+  
+  trupdate(trnslttr,stclng,stcang)
+}
+
+
+
+function avgsdtdv(arr){
+  const n = arr.length
+  const avg = arr.reduce((a, b) => a + b) / n
+  const stddv = Math.sqrt(arr.map(x => Math.pow(x - avg, 2)).reduce((a, b) => a + b) / n)
+  return [avg,stddv]
+}
+
+
+let anrw = stcang
+let idan = null
+
+
+function updateframe(tm){
+  if (tm === lstfr){
+    idan = 
+      requestAnimationFrame(updateframe)
+    return
+  }
+  const dur = tm - lstfr
+  
+  anrw += andir 
+        * anpms 
+        * dur
+  
+  if (andir === 1 && anrw > anlim){
+    anrw = flmax - anrw
+    andir = -1
+  }
+  
+  if (andir === -1 && anrw < anmrg){
+    anrw = flmin - anrw
+    andir = 1
+  }
+  
+  stcang = smooth((anrw-anmrg)/(anlim-anmrg))
+         * (anlim-anmrg) + anmrg
+  
+  cmpang += cmpangpms * dur
+  rotang += rotangpms * dur
+  
+  rottr.setRotate(rotang,0,0)
+  updateallp(stclng,stcang,cmpang)
+    
+  if(cmpang>360){
+    cmpang-=360
+  }
+  
+  
+  lstfr = tm
+  idan = 
+    requestAnimationFrame(updateframe)
+}
+
+let pslide = gebi("ps")
+let pfield = gebi("pb")
+let rslide = gebi("rs")
+let rfield = gebi("rb")
+let cslide = gebi("cs")
+let cfield = gebi("cb")
+
+pslide.value=
+pfield.value=
+  (anpms*1000*100/(anlim-anmrg)).toFixed(1)
+
+rslide.value=
+rfield.value=
+  (rotangpms*1000*100/180).toFixed(1)
+
+cslide.value=
+cfield.value=
+  (cmpangpms*1000*100/180).toFixed(1)
+  
+pslide.addEventListener("input",
+function(evnt){
+  anpms=
+    (pfield.value=pslide.value)
+    *(anlim-anmrg)/1000/100
+})
+
+pfield.addEventListener("change",
+function(evnt){
+  anpms=
+    (pslide.value=pfield.value)
+    *(anlim-anmrg)/1000/100
+})
+
+cslide.addEventListener("input",
+function(evnt){
+  cmpangpms=
+    (cfield.value=cslide.value)
+    *180/1000/100
+})
+
+cfield.addEventListener("change",
+function(evnt){
+  cmpangpms=
+    (cslide.value=cfield.value)
+    *180/1000/100
+})
+
+rslide.addEventListener("input",
+function(evnt){
+  rotangpms=
+    (rfield.value=rslide.value)
+    *180/1000/100
+})
+
+rfield.addEventListener("change",
+function(evnt){
+  rotangpms=
+    (rslide.value=rfield.value)
+    *180/1000/100
+})
+
+let tbut = gebi("toggle")
+let rbut = gebi("reset")
+
+function pausean(){
+  if(!idan)return;
+  cancelAnimationFrame(idan)
+  idan=null
+  tbut.firstChild
+    .textContent="Resume Animation"
+}
+
+function resumean(){
+  if(idan)return;
+  lstfr = performance.now()
+  idan =
+    requestAnimationFrame(updateframe)
+  tbut.firstChild
+    .textContent="Stop Animation"
+}
+
+tbut.addEventListener("click",function(evnt){
+  idan
+  ?pausean()
+  :resumean()
+})
+
+rbut.addEventListener("click",function(evnt){
+  pausean()
+
+  anpms=pms3*(anlim-anmrg)/100
+  pslide.value=
+  pfield.value=
+    (pms3*1000).toFixed(1)
+
+  rotangpms=pms2*180/100
+  rslide.value=
+  rfield.value=
+    (pms2*1000).toFixed(1)
+
+  cmpangpms=pms1*180/100
+  cslide.value=
+  cfield.value=
+    (pms1*1000).toFixed(1)
+  
+  tbut.firstChild
+    .textContent="Stop Animation"
+  
+  stcang=22.5
+  cmpang=0
+  rotang=0
+  
+  resumean()
+})
+
+resumean()
+
