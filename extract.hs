@@ -18,6 +18,6 @@ extract cartridge
           (c:code cs)
   in code . drop 9 $ cartridge
   | otherwise
-  = extract . tail $ cs
+  = extract . tail $ cartridge
 
 --extractPL :: String -> String -> String
