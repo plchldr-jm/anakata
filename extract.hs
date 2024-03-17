@@ -2,7 +2,7 @@ import Data.List (isPrefixOf)
 
 extract :: String -> String
 
-extract "" 
+extract [] 
   = []
 
 extract cartridge 
